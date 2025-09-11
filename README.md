@@ -27,7 +27,7 @@
 | 분야 | 기술 |
 |------|------|
 | **Frontend** | Thymeleaf, Bootstrap, JQuery, AJAX |
-| **Backend** | Java 17, Spring Boot 3, Spring Security, MyBatis, RestTemplate |
+| **Backend** | Java 17, Spring Boot 3, Spring Security, MyBatis|
 | **Database** | MySQL, RDS (AWS) |
 | **CI/CD & Infra** | EC2, 자동화 스크립트, GitHub |
 | **기타** | OAuth2, org.json, Scheduler, JSoup, Validator, Lombok | 
