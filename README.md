@@ -1,101 +1,114 @@
-# 👚 WEARUP
+# WEARUP
 
-지속 가능한 패션 소비를 위한 **의류 구독 기반 렌탈 서비스**  
-패스트패션으로 인한 환경오염과 자원 낭비 문제를 해결하고자  
-브랜드의 의류 등록/재고 관리와 사용자의 구독 기반 대여·반납 기능을 제공합니다.
+> 지속 가능한 패션 소비를 위한 의류 구독·렌탈 웹 서비스
 
-> **📅 프로젝트 기간**: 2025.05.15 ~ 2025.06.05  
-> **👥 팀명**: NCT200  
+브랜드와 사용자를 연결해 의류 등록·재고 관리, 구독 기반 대여·반납, 커뮤니티와 관리자 기능을 제공하는 Spring Boot 기반 팀 프로젝트입니다.
 
-<br>
+## 주요 기능
 
-## 📌 프로젝트 개요
+| 영역 | 기능 |
+| --- | --- |
+| 사용자 | OAuth2 로그인·회원가입, 마이페이지, 구독·대여·결제 조회 |
+| 브랜드 | 상품 등록·수정, 재고 및 배송 상태 관리 |
+| 렌탈 | 구독 플랜 기반 대여·반납 처리 |
+| 커뮤니티 | 게시글·첨부파일·댓글 CRUD |
+| 관리자 | 매출 집계, 회원 관리 |
+| 인프라 | AWS EC2 배포, RDS 연동 |
 
-**WEARUP**은 옷장을 공유하는 의류 렌탈 서비스로, 다음과 같은 문제의식에서 출발했습니다:
+## Tech Stack
 
-- ✔️ **문제 인식**: 패스트패션이 유발하는 환경오염, 자원 낭비
-- 💡 **해결 방안**: 브랜드와 소비자를 연결하는 지속 가능한 의류 순환 시스템
-- 🧾 **주요 기능**:
-  - 브랜드의 상품 등록 및 재고 관리
-  - 사용자의 구독 서비스 기반 렌탈/반납
-  - 관리자 매출 관리, 사용자 포인트 환급, 결제 조회 등 
+| Category | Stack |
+| --- | --- |
+| Backend | `Java 17` `Spring Boot 3.4` `Spring Security` `MyBatis` |
+| Frontend | `Thymeleaf` `JavaScript` `jQuery` `Bootstrap` |
+| Database | `MySQL` `AWS RDS` |
+| Auth | `Spring Security` `OAuth2 Client` |
+| Infra | `AWS EC2` |
+| Build | `Gradle` |
 
-<br>
+## My Role
 
-## 🛠 사용 기술 스택
+- 피드 게시글·첨부파일·댓글 CRUD 구현
+- 관리자 매출 및 회원 관리 기능 구현
+- Spring Security 기반 권한별 접근 제어 적용
+- 다음 주소 검색 API 연동
+- AWS EC2 배포 및 RDS 연동
+- 배포 자동화 스크립트 작성
+- GitHub 및 프로젝트 문서 관리
 
-| 분야 | 기술 |
-|------|------|
-| **Frontend** | Thymeleaf, Bootstrap, JQuery, AJAX |
-| **Backend** | Java 17, Spring Boot 3, Spring Security, MyBatis|
-| **Database** | MySQL, RDS (AWS) |
-| **CI/CD & Infra** | EC2, 자동화 스크립트, GitHub |
-| **기타** | OAuth2, org.json, Scheduler, JSoup, Validator, Lombok | 
+## Service Structure
 
-<br>
+```text
+Browser
+  │
+  ▼
+Spring Boot
+  ├─ 사용자 기능
+  ├─ 브랜드 기능
+  ├─ 렌탈 기능
+  ├─ 피드
+  └─ 관리자 기능
+       │
+       ▼
+    MyBatis
+       │
+       ▼
+   MySQL / AWS RDS
 
-## 🧩 주요 기능 요약
-
-- 🔐 **OAuth2 기반 로그인/회원가입**
-- 📦 **브랜드 상품 등록 및 수정**
-- 🔁 **구독 기반 의류 대여/반납 시스템**
-- 💳 **포인트 환급 및 결제 내역 조회**
-- 📝 **피드(게시글/댓글/첨부파일) 기능**
-- 📊 **관리자용 매출 집계 및 회원 관리**
-- 🏠 **주소 검색 (다음 API 활용)**
-- 🖥 **반응형 UI 전반 스타일링**
-- 🛠 **EC2 서버 배포 및 RDS 연동** 
-
-<br>
-
-## 👨‍👩‍👧‍👦 팀원 및 담당 업무
-
-| 이름 | 역할 | 담당 업무 요약 |
-|------|------|----------------|
-| **안주경** | 팀장 · 사용자 기능 개발 | OAuth2 로그인/회원가입, 마이페이지(내정보/구독/대여/게시물), 결제 조회, 포인트 환급 로직, 전체 CSS 및 반응형 UI |
-| **이현정** | 피드 · 관리자 기능 개발 | 피드(게시글/첨부파일/댓글) CRUD, 관리자 페이지(매출·회원 관리), 권한 기반 접근 제어, 주소 검색(다음 API), EC2·RDS 배포 및 자동화 스크립트, GitHub·문서 관리 |
-| **최해훈** | 브랜드 · 대여 기능 개발 | 브랜드 회원가입/상품 CRUD, 대여/반납 처리, 상태 변경 및 배송 관리, 스케줄러 동기화 로직 |
-
-<br>
-
-## 📝 실행 방법
-
-### 0. 사전 준비
-
-- Java 17 이상 설치
-- MySQL 8 이상 설치 및 `wearup` 데이터베이스 생성
-- (선택) Kakao, Naver OAuth2 연동 설정
-
-
-### 1. 레포지토리 클론
-
-```bash
-git clone https://github.com/hyoju0104/WEARUP.git
-cd WEARUP
+Application Server: AWS EC2
 ```
 
+## Implementation Details
 
-### 2.  application-prod.yml 수정
-`src/main/resources/application-prod.yml` 파일에서 아래 항목들의 `${...}` 부분을 실제 값으로 교체해 주세요:
+### Feed
+- 게시글, 첨부파일, 댓글의 등록·조회·수정·삭제 기능을 구현했습니다.
+- 게시글과 댓글 기능을 연결해 기본적인 커뮤니티 흐름을 구성했습니다.
 
-- DB 접속 정보 (${rds.hostname}, ${rds.username}, ${rds.password} 등)
-- (선택) Kakao, Naver OAuth2 설정 값
+### Admin
+- 관리자 페이지에서 회원 정보와 매출 현황을 조회·관리할 수 있도록 구현했습니다.
+- 일반 사용자 화면과 관리자 화면을 구분해 운영 기능을 분리했습니다.
 
+### Access Control
+- Spring Security를 적용해 로그인 사용자와 권한별 접근 범위를 구분했습니다.
+- 사용자·브랜드·관리자 역할에 따라 접근 가능한 기능을 나누었습니다.
 
-### 3. 프로젝트 실행
+### Deployment
+- AWS EC2에 애플리케이션을 배포하고 AWS RDS의 MySQL과 연동했습니다.
+- 반복적인 배포 작업을 줄이기 위한 스크립트를 작성했습니다.
+
+## Security Considerations
+
+- Spring Security를 이용해 인증·인가를 적용했습니다.
+- 역할에 따라 접근 가능한 화면과 기능을 구분했습니다.
+- DB 연결 정보와 OAuth 설정값은 외부 설정으로 관리합니다.
+
+## ERD
+
+![WEARUP ERD](./ERD/wearup.png)
+
+ERD 원본은 [`/ERD/wearup.erd`](./ERD/wearup.erd)에서 확인할 수 있습니다.
+
+## Run
+
 ```bash
 ./gradlew build
 ./gradlew bootRun
 ```
 
+기본 접속 주소:
 
-### 4. 웹 접속
-```http://localhost:8080```
+```text
+http://localhost:8080
+```
 
+## Demo
 
-<br>
+[시연 영상 보기](https://youtu.be/tbd1ADUvrsg?t=91)
 
-## 시연 영상 ([link](https://youtu.be/tbd1ADUvrsg?t=91))
+## Team
 
-![NCT200](https://github.com/user-attachments/assets/06165670-dbb6-44c4-a093-37ca2d24fa60)
-
+| Member | Main Contribution |
+| --- | --- |
+| 안주경 | 사용자 기능, OAuth2, 마이페이지, 결제·포인트, UI |
+| **이현정** | 피드, 관리자 기능, 접근 제어, 주소 API, AWS 배포·문서 관리 |
+| 최해훈 | 브랜드·상품, 대여·반납, 배송·상태 관리 |
