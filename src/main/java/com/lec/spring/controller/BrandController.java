@@ -120,7 +120,7 @@ public class BrandController {
 
             for (int i = 0; i < beforeImg.size(); i++) {
                 BrandAttachment old = beforeImg.get(i);
-                File oldFile = Paths.get(System.getProperty("user.dir"), uploadDirBrand, old.getFilename()).toFile();
+                File oldFile = Paths.get(uploadDirBrand).toAbsolutePath().normalize().resolve(old.getFilename()).toFile();
 
                 if (oldFile.exists()) {
                     oldFile.delete();
@@ -132,7 +132,7 @@ public class BrandController {
             String originalName = logo.getOriginalFilename();
             String newFileName = UUID.randomUUID() + "_" + originalName;
 
-            File newFile = Paths.get(System.getProperty("user.dir"), uploadDirBrand, newFileName).toFile();
+            File newFile = Paths.get(uploadDirBrand).toAbsolutePath().normalize().resolve(newFileName).toFile();
 
             try {
                 logo.transferTo(newFile);

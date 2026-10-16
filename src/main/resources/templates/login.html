@@ -44,7 +44,8 @@
 		</form>
 		
 		<!-- 소셜 로그인 버튼 -->
-		<div class="social-login">
+		<!-- - 로컬에서 소셜 로그인을 끄면 사용하지 않는 버튼도 숨김 -->
+		<div class="social-login" th:if="${@environment.getProperty('app.oauth2.enabled', 'true') == 'true'}">
 			<p>소셜 계정으로 로그인</p>
 			<a th:href="@{/oauth2/authorization/naver}" class="social-btn naver">네이버 로그인</a>
 			<a th:href="@{/oauth2/authorization/kakao}" class="social-btn kakao">카카오 로그인</a>

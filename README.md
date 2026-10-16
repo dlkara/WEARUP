@@ -90,6 +90,9 @@ ERD 원본은 [`/ERD/wearup.erd`](./ERD/wearup.erd)에서 확인할 수 있습�
 
 ## Run
 
+AWS 없이 실행하려면 [로컬 Docker 실행 안내](docs/local-docker.md)를 참고하세요.
+앱·MySQL·업로드 볼륨을 구성하며, 로컬에서는 일반 회원·브랜드 로그인을 사용합니다.
+
 ```bash
 ./gradlew build
 ./gradlew bootRun
