@@ -31,13 +31,13 @@ public class PostAttachmentServiceImpl implements PostAttachmentService {
 	}
 	
 	
-	// 특정 게시글에 연결된 첨부파일 가져오기
+	// - 첨부 ID로 파일 정보 조회
 	@Override
 	public PostAttachment findById(Long id) {
 		return attachmentRepository.findById(id);
 	}
 	
-	// 특정 첨부파일 삭제
+	// - 첨부가 속한 게시글의 작성자만 삭제 가능
 	@Override
 	public void deleteAttachment(Long id) {
 		PostAttachment attachment = attachmentRepository.findById(id);
@@ -55,8 +55,8 @@ public class PostAttachmentServiceImpl implements PostAttachmentService {
 		}
 	}
 	
-	// 특정 게시글에 연결된 모든 첨부파일 삭제
-	@Transactional  // 하나의 트랜잭션으로 묶기 (모두 다 commit 되거나 rollback 되거나)
+	// - 게시글 작성자를 확인한 뒤 연결된 첨부 삭제
+	@Transactional  // - DB 작업을 묶는 설정이며 물리 파일 삭제까지 롤백되지는 않음
 	@Override
 	public void deleteByPostId(Long postId) {
 		resourceAccess.requirePostOwner(postId);

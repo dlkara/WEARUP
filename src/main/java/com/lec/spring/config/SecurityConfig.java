@@ -68,6 +68,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // CSRF 비활성화
                 .authorizeHttpRequests(auth->auth
+                        // - 첨부 변경 경로를 먼저 보호하고 상품 조회만 공개
                         .requestMatchers("/item/attachment/**").hasAuthority("BRAND")
                         .requestMatchers(HttpMethod.GET, "/item/**").permitAll()
                         // 누구나 접근 가능

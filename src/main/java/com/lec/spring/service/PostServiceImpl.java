@@ -214,6 +214,7 @@ public class PostServiceImpl implements PostService {
 	// 특정 게시글 수정하기
 	@Override
 	public int update(Post post, Map<String, MultipartFile> files, Long[] delfile) {
+		// - 컨트롤러를 거치지 않아도 변경 전에 작성자와 첨부 소속 확인
 		Post stored = resourceAccess.requirePostOwner(post.getId());
 		List<PostAttachment> deletions = resourceAccess.requirePostAttachments(post.getId(), delfile);
 		int result = postRepository.update(post);
@@ -241,6 +242,7 @@ public class PostServiceImpl implements PostService {
 	@Override
 	@Transactional
 	public int deleteById(Long id) {
+		// - 첨부파일을 지우기 전에 DB 작성자부터 확인
 		Post stored = resourceAccess.requirePostOwner(id);
 		// 연결된 첨부파일 모두 삭제
 		postAttachmentService.deleteByPostId(id);

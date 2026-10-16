@@ -33,7 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @org.springframework.test.context.ContextConfiguration(classes = {PostController.class, ItemAttachmentController.class, BrandItemController.class, ItemController.class})
 @Import({SecurityConfig.class, ResourceAccess.class, PostAttachmentValidator.class, RequestIdFilter.class, OwnershipHttpTest.Views.class})
 class OwnershipHttpTest {
-    // Exercise routing, security and binding without requiring browser template fixtures.
+    // - 라우팅·권한·바인딩은 검사하고 일부 화면 렌더링은 대체
+    // - 수정 오류 폼과 redirect는 실제 뷰 처리로 확인
     @org.springframework.boot.test.context.TestConfiguration
     static class Views {
         @org.springframework.context.annotation.Bean

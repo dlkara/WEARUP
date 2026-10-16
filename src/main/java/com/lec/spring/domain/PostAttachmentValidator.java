@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Component
 public class PostAttachmentValidator implements Validator {
 	
-	// 지원하는 이미지 MIME 타입
+	// - 요청 MIME 허용 목록이며 실제 이미지 내용 검증은 아님
 	private static final List<String> IMAGE_MIME_TYPES = Arrays.asList(
 			"image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp"
 	);

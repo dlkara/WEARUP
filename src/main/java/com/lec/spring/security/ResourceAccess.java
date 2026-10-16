@@ -21,7 +21,10 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-/** Authorize against persisted ownership, never a request-bound association. */
+/**
+ * - 요청에 담긴 작성자·브랜드 정보는 권한 판단에 사용하지 않음
+ * - 로그인한 계정과 DB에 저장된 소유자를 비교
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -30,6 +33,7 @@ public class ResourceAccess {
     private final PostAttachmentRepository postAttachmentRepository;
     private final ItemRepository itemRepository;
 
+    // - 일반 사용자 계정으로 본인 게시글을 변경하는지 확인
     public Post requirePostOwner(Long postId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Long actorId = auth != null && auth.isAuthenticated()
@@ -44,6 +48,7 @@ public class ResourceAccess {
         return stored;
     }
 
+    // - 브랜드 계정으로 본인 상품을 변경하는지 확인
     public Item requireItemOwner(Long itemId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Long actorId = auth != null && auth.isAuthenticated()
@@ -58,7 +63,11 @@ public class ResourceAccess {
         return stored;
     }
 
-    /** Validate the whole set before any post update, upload or deletion. */
+    /**
+     * - 중복 삭제 ID는 한 번만 처리
+     * - 다른 게시글의 첨부나 없는 ID가 섞이면 전체 요청 거부
+     * - 일부만 삭제되는 일이 없도록 변경 전에 전체 목록 확인
+     */
     public List<PostAttachment> requirePostAttachments(Long postId, Long[] ids) {
         Post stored = requirePostOwner(postId);
         List<PostAttachment> attachments = new ArrayList<>();

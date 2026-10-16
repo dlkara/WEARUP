@@ -31,7 +31,7 @@ public class U {
 	// 현재 로그인한 사용자 User 구하기
 	public static User getLoggedUser() {
 		// 현재 로그인한 사용자
-		// Security ContextHolder 라는 키값에다가 session 정보를 저장함
+		// - SecurityContext에서 현재 인증 주체 조회
 		PrincipalUserDetails principalUserDetails = (PrincipalUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		User user = principalUserDetails.getUser();
 		return user;
@@ -42,7 +42,8 @@ public class U {
 		
 		String originalFilename = file.getOriginalFilename();
 		if (originalFilename == null || originalFilename.isEmpty()) return;
-		// Preserve existing decoder behavior without logging names, paths or supplied MIME.
+		// - 기존 디코더 호출은 유지하고 파일명·경로·요청 MIME 출력은 제외
+		// - 읽기 결과가 null이어도 여기서 저장을 차단하지는 않음
 		try (var input = file.getInputStream()) {
 			BufferedImage image = ImageIO.read(input);
 			log.debug("event=POST_FILE_INSPECTED sizeBytes={} decoded={}", file.getSize(), image != null);

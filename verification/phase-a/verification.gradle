@@ -1,5 +1,5 @@
-// Opt-in test sources; this file is not applied by the service build.
-// bash gradlew --init-script verification/phase-a/verification.gradle test --tests 'com.lec.spring.security.*'
+// - 서비스 기본 빌드에는 연결하지 않고 검증 명령에서만 테스트 소스 추가
+// - 실행: bash gradlew --init-script verification/phase-a/verification.gradle test --tests 'com.lec.spring.security.*'
 gradle.projectsEvaluated {
     def serviceProject = gradle.rootProject
     serviceProject.sourceSets.test.java.srcDir(

@@ -169,6 +169,7 @@ public class BrandItemController {
                            RedirectAttributes redirectAttributes,
                            Model model) {
 
+        // - 다른 브랜드의 상품이면 검증 화면 표시나 이미지 교체 전에 거부
         resourceAccess.requireItemOwner(item.getId());
 
         new BrandItemValidator().validate(item, result);
