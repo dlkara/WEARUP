@@ -2,16 +2,18 @@ package com.lec.spring.domain;
 
 import java.util.Arrays;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Component
 public class PostAttachmentValidator implements Validator {
 	
-	// 지원하는 이미지 MIME 타입
+	// - 요청 MIME 허용 목록이며 실제 이미지 내용 검증은 아님
 	private static final List<String> IMAGE_MIME_TYPES = Arrays.asList(
 			"image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp"
 	);
@@ -28,11 +30,10 @@ public class PostAttachmentValidator implements Validator {
 	@Override
 	public void validate(Object target, Errors errors) {
 		MultipartFile file = (MultipartFile) target;
-		
-		System.out.println("✅ [Post] validate() 호출");
-		
+
 		String type = file.getContentType();
 		if (!IMAGE_MIME_TYPES.contains(type)) {
+			log.warn("event=POST_IMAGE_REJECTED reasonCode=IMAGE_MIME_UNSUPPORTED sizeBytes={}", file.getSize());
 			errors.rejectValue("fileList", "이미지 파일만 업로드 가능합니다");
 		}
 	}

@@ -4,19 +4,14 @@ import com.lec.spring.domain.Item;
 import com.lec.spring.domain.ItemAttachment;
 import com.lec.spring.service.ItemAttachmentService;
 import com.lec.spring.service.ItemService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.File;
 
 @Controller
 @RequestMapping("/item/attachment")
 public class ItemAttachmentController {
-
-    @Value("${app.upload.path.item}")
-    private String uploadDirItem;
 
     private final ItemService itemService;
     private final ItemAttachmentService itemAttachmentService;
@@ -34,9 +29,6 @@ public class ItemAttachmentController {
 
         // 첨부파일이 존재하면 삭제 처리
         if (attachment != null) {
-            File file = new File(System.getProperty("user.dir") + "/" + uploadDirItem + "/" + attachment.getFilename());
-            if (file.exists()) file.delete();
-
             // DB에서 첨부파일 삭제
             itemAttachmentService.deleteById(id);
 

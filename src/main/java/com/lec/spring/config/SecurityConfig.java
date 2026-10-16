@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -67,6 +68,9 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // CSRF 비활성화
                 .authorizeHttpRequests(auth->auth
+                        // - 첨부 변경 경로를 먼저 보호하고 상품 조회만 공개
+                        .requestMatchers("/item/attachment/**").hasAuthority("BRAND")
+                        .requestMatchers(HttpMethod.GET, "/item/**").permitAll()
                         // 누구나 접근 가능
                         .requestMatchers(
                                 "/", "/error",
@@ -74,7 +78,6 @@ public class SecurityConfig {
                                 "/css/**", "/js/**", "/images/**", "/upload/**", "/common/**",
                                 "/post/list", "/post/detail/**",
                                 "/comment/**",
-                                "/item/**", "/item/detail/**", "/item/list/category/**",
                                 
                                 // DevTools PWA 메타파일 경로
                                 "/.well-known/**", "/appspecific/**"

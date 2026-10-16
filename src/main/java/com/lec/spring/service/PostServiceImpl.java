@@ -9,6 +9,9 @@ import com.lec.spring.repository.PostAttachmentRepository;
 import com.lec.spring.repository.PostRepository;
 import com.lec.spring.repository.UserRepository;
 import com.lec.spring.util.U;
+import com.lec.spring.security.ResourceAccess;
+import com.lec.spring.security.MutationLog;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +31,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class PostServiceImpl implements PostService {
 	
@@ -39,15 +43,16 @@ public class PostServiceImpl implements PostService {
 	private final PostAttachmentRepository postAttachmentRepository;
 	private final PostAttachmentService postAttachmentService;
 	private final CommentRepository commentRepository;
+	private final ResourceAccess resourceAccess;
 	
 	public PostServiceImpl(SqlSession sqlSession, PostAttachmentRepository postAttachmentRepository,
-	                       PostAttachmentService postAttachmentService, CommentRepository commentRepository) {
+	                       PostAttachmentService postAttachmentService, CommentRepository commentRepository, ResourceAccess resourceAccess) {
 		this.postRepository = sqlSession.getMapper(PostRepository.class);
 		this.userRepository = sqlSession.getMapper(UserRepository.class);
 		this.postAttachmentRepository = sqlSession.getMapper(PostAttachmentRepository.class);
 		this.postAttachmentService = postAttachmentService;
 		this.commentRepository = commentRepository;
-		System.out.println("✅ PostService() 생성");
+		this.resourceAccess = resourceAccess;
 	}
 	
 	
@@ -98,7 +103,7 @@ public class PostServiceImpl implements PostService {
 		
 		// 첨부파일 추가
 		addFiles(files, post.getId());
-		
+		MutationLog.success("CREATE", "POST", post.getId(), user.getId());
 		return cnt;
 	}
 	
@@ -110,12 +115,7 @@ public class PostServiceImpl implements PostService {
 			// name="upfile##" 인 경우만 첨부파일 등록
 			//  -> 다른 웹에디터와 섞이지 않도록 하기 위함 (ex: summernote)
 			if (!e.getKey().startsWith("upfile")) continue;
-			
-			// 첨부파일 정보 출력
-			System.out.println("\n➡️첨부파일 정보: " + e.getKey());   // key = name = 값
-			U.printFileInfo(e.getValue());  // value = MultipartFile 정보
-			System.out.println();
-			
+			U.printFileInfo(e.getValue());
 			// 물리적인 파일 저장
 			PostAttachment file = upload(e.getValue());
 			
@@ -164,14 +164,10 @@ public class PostServiceImpl implements PostService {
 			}
 		}
 		
-		// 저장될 파일명
-		System.out.println("\tfilenName = " + fileName);
-		
 		// java.io.* => java.nio.*
 		// 실제 저장될 경로명 저장
 		Path copyOfLocation = Paths.get(new File(uploadDir, fileName).getAbsolutePath());
-		System.out.println("\tcopyOfLocation = " + copyOfLocation);
-		
+
 		// 파일 복사
 		try {
 			Files.copy(
@@ -180,6 +176,7 @@ public class PostServiceImpl implements PostService {
 					StandardCopyOption.REPLACE_EXISTING // 기존에 존재하면 덮어쓰기
 			);
 		} catch (IOException e) {
+			log.error("event=POST_FILE_WRITE_FAILED reasonCode=STORAGE_WRITE_FAILED exceptionType={}", e.getClass().getSimpleName());
 			throw new RuntimeException(e);
 		}
 		
@@ -217,23 +214,17 @@ public class PostServiceImpl implements PostService {
 	// 특정 게시글 수정하기
 	@Override
 	public int update(Post post, Map<String, MultipartFile> files, Long[] delfile) {
-		int result = 0;
-		result = postRepository.update(post);
-		
-		// 새로운 첨부파일(들) 추가
+		// - 컨트롤러를 거치지 않아도 변경 전에 작성자와 첨부 소속 확인
+		Post stored = resourceAccess.requirePostOwner(post.getId());
+		List<PostAttachment> deletions = resourceAccess.requirePostAttachments(post.getId(), delfile);
+		int result = postRepository.update(post);
 		addFiles(files, post.getId());
-		
-		// 삭제할 기존의 첨부파일(들) 삭제
-		if (delfile != null) {
-			for (Long fileId : delfile) {
-				PostAttachment file = postAttachmentRepository.findById(fileId);
-				if (file != null) {
-					delFile(file);
-					postAttachmentRepository.delete(file);
-				}
-			}
+		for (PostAttachment file : deletions) {
+			delFile(file);
+			postAttachmentRepository.delete(file);
 		}
-		
+		if (result > 0) MutationLog.success("UPDATE", "POST", post.getId(), stored.getUser().getId());
+
 		return result;
 	}
 	
@@ -242,22 +233,23 @@ public class PostServiceImpl implements PostService {
 		String saveDir = new File(uploadDir).getAbsolutePath();
 		
 		File f = new File(saveDir, file.getFilename());
-		System.out.println("삭제 시도 : " + f.getAbsolutePath());
-		
-		if (f.exists()) {   // 파일이 존재하는 경우 삭제
-			if (f.delete()) System.out.println("삭제 성공");
-			else System.out.println("삭제 실패");
+		if (f.exists() && !f.delete()) {
+			log.error("event=POST_FILE_DELETE_FAILED resourceId={} reasonCode=CLEANUP_FAILED", file.getId());
 		}
-		else System.out.println("파일이 존재하지 않습니다.");
+
 	}
 	
 	@Override
 	@Transactional
 	public int deleteById(Long id) {
+		// - 첨부파일을 지우기 전에 DB 작성자부터 확인
+		Post stored = resourceAccess.requirePostOwner(id);
 		// 연결된 첨부파일 모두 삭제
 		postAttachmentService.deleteByPostId(id);
 		// 게시글 레코드 삭제
-		return postRepository.delete(postRepository.findById(id));
+		int result = postRepository.delete(stored);
+		if (result > 0) MutationLog.success("DELETE", "POST", id, stored.getUser().getId());
+		return result;
 	}
 
 	@Override
