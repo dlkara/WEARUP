@@ -1,0 +1,8 @@
+// Opt-in test sources; this file is not applied by the service build.
+// bash gradlew --init-script verification/phase-a/verification.gradle test --tests 'com.lec.spring.security.*'
+gradle.projectsEvaluated {
+    def serviceProject = gradle.rootProject
+    serviceProject.sourceSets.test.java.srcDir(
+        serviceProject.file('verification/phase-a/src/test/java')
+    )
+}

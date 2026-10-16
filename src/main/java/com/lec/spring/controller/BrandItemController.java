@@ -6,6 +6,7 @@ import com.lec.spring.domain.Item;
 import com.lec.spring.domain.ItemAttachment;
 import com.lec.spring.service.ItemAttachmentService;
 import com.lec.spring.service.ItemService;
+import com.lec.spring.security.ResourceAccess;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,13 +32,15 @@ public class BrandItemController {
 
     private final ItemService itemService;
     private final ItemAttachmentService itemAttachmentService;
+    private final ResourceAccess resourceAccess;
 
     @Value("${app.upload.path.item}")
     private String uploadDirItem;
 
-    public BrandItemController(ItemService itemService, ItemAttachmentService itemAttachmentService) {
+    public BrandItemController(ItemService itemService, ItemAttachmentService itemAttachmentService, ResourceAccess resourceAccess) {
         this.itemService = itemService;
         this.itemAttachmentService = itemAttachmentService;
+        this.resourceAccess = resourceAccess;
     }
 
     // 상품 등록 폼으로 이동
@@ -166,6 +169,8 @@ public class BrandItemController {
                            RedirectAttributes redirectAttributes,
                            Model model) {
 
+        resourceAccess.requireItemOwner(item.getId());
+
         new BrandItemValidator().validate(item, result);
 
         if (result.hasErrors()) {
@@ -194,8 +199,6 @@ public class BrandItemController {
         if (itemImage != null && !itemImage.isEmpty()) {
             List<ItemAttachment> before = itemAttachmentService.findByItemId(item.getId());
             for (ItemAttachment old : before) {
-                File oldFile = Paths.get(System.getProperty("user.dir"), uploadDirItem, old.getFilename()).toFile();
-                if (oldFile.exists()) oldFile.delete();
                 itemAttachmentService.deleteById(old.getId());
             }
 

@@ -65,7 +65,6 @@ public class PrincipalBrandDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        System.out.println("brand.getPassword() : " + brand.getPassword());
         return brand.getPassword();
     }
 

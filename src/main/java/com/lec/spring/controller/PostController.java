@@ -6,10 +6,10 @@ import com.lec.spring.domain.PostAttachment;
 import com.lec.spring.domain.PostAttachmentValidator;
 import com.lec.spring.domain.PostValidator;
 import com.lec.spring.service.PostService;
+import com.lec.spring.security.ResourceAccess;
+import lombok.extern.slf4j.Slf4j;
 import jakarta.validation.Valid;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,50 +21,35 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Controller
 @RequestMapping("/post")
 public class PostController {
 	
 	private final PostService postService;
 	private final PostAttachmentValidator postAttachmentValidator;
+	private final ResourceAccess resourceAccess;
 	
-	public PostController(PostService postService, PostAttachmentValidator postAttachmentValidator) {
+	public PostController(PostService postService, PostAttachmentValidator postAttachmentValidator, ResourceAccess resourceAccess) {
 		this.postService = postService;
 		this.postAttachmentValidator = postAttachmentValidator;
+		this.resourceAccess = resourceAccess;
 	}
 	
 	
 	@InitBinder("post")
 	public void initBinder1(WebDataBinder binder){
-		System.out.println("✅ @InitBinder 호출");
-
-		// 1. 바인딩된 Post 객체 가져오기
-		Object target = binder.getTarget();
-		if (target instanceof Post) {
-			// 2. SecurityContext 에서 인증 정보 꺼내기
-			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-			// 3. Post.user 주입
-			if (auth != null && auth.getPrincipal() instanceof PrincipalUserDetails) {
-				PrincipalUserDetails pud = (PrincipalUserDetails) auth.getPrincipal();
-				((Post) target).setUser(pud.getUser());
-			}
-		}
-
-		// 4. 기존 PostValidator 등록
+		// Associations and server-managed fields must never bind from a request.
+		binder.setAllowedFields("id", "content", "items");
 		binder.addValidators(new PostValidator());
 	}
 	
 	@ModelAttribute("post")
-	public Post getPost(@RequestParam(value = "id", required = false) Long id) {
-		if (id != null) {
-			return postService.detail(id);
-		}
+	public Post getPost() {
 		return new Post();
 	}
 
@@ -145,8 +130,6 @@ public class PostController {
 	@RequestMapping("/detail/{id}")
 	public String detail(@PathVariable Long id, Model model) {
 		Post post = postService.detail(id);
-		System.out.println("🔍 작성자 ID = " + post.getUser().getId());
-		System.out.println("🔍 작성자 Username = " + post.getUser().getUsername());
 		model.addAttribute("writerId", post.getUser().getId());
 		model.addAttribute("writerUsername", post.getUser().getUsername());
 		model.addAttribute("post", post);
@@ -182,8 +165,12 @@ public class PostController {
 			@RequestParam(required = false) Long[] delFile     // 삭제될 파일들의 id(들)
 	){
 		// 1. 게시글 조회 : 존재하지 않는 게시글이면 redirect
+		resourceAccess.requirePostOwner(post.getId());
 		Post originalPost = postService.detail(post.getId());
-		if (originalPost == null) return "redirect:/post/list";
+		// Restore server-owned display fields only after binding and persisted ownership checks.
+		post.setUser(originalPost.getUser());
+		List<PostAttachment> deletions = resourceAccess.requirePostAttachments(post.getId(), delFile);
+		delFile = deletions.stream().map(PostAttachment::getId).toArray(Long[]::new);
 
 		// 2. 업로드된 파일 전체 Map 으로 꺼내기
 		Map<String, MultipartFile> files = request.getFileMap();
@@ -211,7 +198,7 @@ public class PostController {
 		int totalImg = existingCnt - deleteCnt + newCnt;
 
 		// 3-6) 이미지 최소 1개 존재 여부 검증
-		if (totalImg == 0) {
+		if (totalImg < 1) {
 			result.rejectValue("fileList", "1개 이상의 이미지를 등록해주세요.");
 		}
 		else {
@@ -255,14 +242,8 @@ public class PostController {
 			RedirectAttributes redirectAttributes,
 			Model model
 	){
-		Post post = postService.detail(id);
-		
-		// 현재 로그인한 사용자가 작성자가 아닌 경우 리다이렉트
-		if (!post.getUser().getId().equals(principal.getUser().getId())){
-			redirectAttributes.addFlashAttribute("error", "작성자만 삭제할 수 있습니다.");
-			return "redirect:/post/detail/" + id;
-		}
-		
+		resourceAccess.requirePostOwner(id);
+
 		int result = postService.deleteById(id);
 		model.addAttribute("result", result);
 		
@@ -272,18 +253,8 @@ public class PostController {
 	
 	// 바인딩 에러 출력 도우미 메소드
 	public void showErrors(Errors errors){
-		if(errors.hasErrors()){
-			System.out.println("💢에러개수: " + errors.getErrorCount());
-
-			// 어떤 field 에 어떤 에러(code) 가 담겨있는지 확인
-			System.out.println("\t[field]\t|[code]");
-			List<FieldError> errList = errors.getFieldErrors();
-
-			for(FieldError err : errList){
-				System.out.println("\t" + err.getField() + "\t|" + err.getCode());
-			}
-		} else {
-			System.out.println("✅ 에러 없음");
+		if (errors.hasErrors()) {
+			log.warn("event=POST_VALIDATION_REJECTED errorCount={}", errors.getErrorCount());
 		}
 	} // end showErrors()
 

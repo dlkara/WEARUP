@@ -5,7 +5,6 @@ import com.lec.spring.domain.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,7 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class U {
 	
 	// 현재 request 구하기
@@ -39,41 +40,15 @@ public class U {
 	// 첨부파일 정보(MultipartFile) 출력하기
 	public static void printFileInfo(MultipartFile file) {
 		
-		String originalFilename = file.getOriginalFilename();   // 원본 파일명
-		
-		if (originalFilename == null || originalFilename.isEmpty())  {
-			System.out.println("\t파일이 없습니다.");
-			return;
+		String originalFilename = file.getOriginalFilename();
+		if (originalFilename == null || originalFilename.isEmpty()) return;
+		// Preserve existing decoder behavior without logging names, paths or supplied MIME.
+		try (var input = file.getInputStream()) {
+			BufferedImage image = ImageIO.read(input);
+			log.debug("event=POST_FILE_INSPECTED sizeBytes={} decoded={}", file.getSize(), image != null);
+		} catch (IOException ex) {
+			log.warn("event=POST_FILE_INSPECTION_FAILED reasonCode=IMAGE_READ_FAILED exceptionType={}", ex.getClass().getSimpleName());
+			throw new RuntimeException(ex);
 		}
-		
-		// 일반 파일인 경우
-		System.out.println("""
-					Original File Name : %s
-					CleanPath : %s
-					File Size : %s
-					MIME_Type : %s
-				""".formatted(
-						originalFilename,
-						StringUtils.cleanPath(originalFilename),    //   ※  cleanPath 는  C:\Users\aaa\bbbb/dsaf/asdfsafd.ddd
-																	 //                    "\" -> "/" 로 변경
-						file.getSize() + "bytes",   // 용량 (byte 단위)
-						file.getContentType()       // content type (MIME type)
-		));
-		
-		// 이미지 파일인 경우
-		try {
-			BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
-			
-			if (bufferedImage != null) {
-				System.out.printf("\t이미지 파일입니다: %d x %d", bufferedImage.getWidth(), bufferedImage.getHeight());
-			}
-			else {
-				System.out.println("\t이미지 파일이 아닙니다");
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		
 	}
-
 }
