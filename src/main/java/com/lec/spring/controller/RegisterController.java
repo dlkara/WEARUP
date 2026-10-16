@@ -150,7 +150,7 @@ public class RegisterController {
         if (logo != null && !logo.isEmpty()) {
             String originalName = logo.getOriginalFilename();
             String newFileName = UUID.randomUUID() + "_" + originalName;
-            Path uploadPath = Paths.get(System.getProperty("user.dir"), uploadDirBrand);
+            Path uploadPath = Paths.get(uploadDirBrand).toAbsolutePath().normalize();
             File newFile = uploadPath.resolve(newFileName).toFile();
 
             try {

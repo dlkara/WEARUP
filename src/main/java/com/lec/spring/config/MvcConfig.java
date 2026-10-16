@@ -8,6 +8,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
@@ -28,13 +32,13 @@ public class MvcConfig implements WebMvcConfigurer {
 		// 설정한 URL 로 request 받으면 "upload/" 경로의 static resource 가 응답되도록 함.
 		registry
 				.addResourceHandler("/upload/post/**")
-				.addResourceLocations("file:" + uploadDir + "/");
+				.addResourceLocations(uploadLocation(uploadDir));
 		
 		registry.addResourceHandler("/upload/item/**")
-				.addResourceLocations("file:" + uploadDirItem + "/");
+				.addResourceLocations(uploadLocation(uploadDirItem));
 		
 		registry.addResourceHandler("/upload/brand/**")
-				.addResourceLocations("file:" + uploadDirBrand + "/");
+				.addResourceLocations(uploadLocation(uploadDirBrand));
 		
 		// Chrome DevTools 가 가져가려는
 		// .well-known/appspecific/com.chrome.devtools.json 파일의 위치를 정적 리소스로 처리
@@ -45,4 +49,17 @@ public class MvcConfig implements WebMvcConfigurer {
 				.addResourceLocations("classpath:/static/.well-known/",
 						"classpath:/static/.well-known/appspecific/");
 	}
+
+    // - PC와 컨테이너에서 같은 경로를 사용하도록 절대 경로로 변환
+    // - 게시글 첫 업로드 전에 필요한 폴더도 생성
+    private String uploadLocation(String directory) {
+        try {
+            Path path = Path.of(directory).toAbsolutePath().normalize();
+            Files.createDirectories(path);
+            return path.toUri().toString();
+        } catch (IOException ex) {
+            throw new UncheckedIOException("업로드 폴더를 준비할 수 없습니다", ex);
+        }
+    }
+
 }

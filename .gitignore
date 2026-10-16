@@ -43,3 +43,8 @@ out/
 upload
 
 src/main/resources/application.yml
+
+# - 로컬 DB 비밀번호는 예시 파일과 분리
+.env
+.env.*
+!.env.local.example

@@ -92,7 +92,7 @@ public class BrandItemController {
         // 파일 저장
         if (itemImage != null && !itemImage.isEmpty()) {
             try {
-                Path uploadPath = Paths.get(System.getProperty("user.dir"), uploadDirItem);
+                Path uploadPath = Paths.get(uploadDirItem).toAbsolutePath().normalize();
                 if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
 
                 String savedName = UUID.randomUUID() + "_" + itemImage.getOriginalFilename();
@@ -204,7 +204,7 @@ public class BrandItemController {
             }
 
             try {
-                Path uploadPath = Paths.get(System.getProperty("user.dir"), uploadDirItem);
+                Path uploadPath = Paths.get(uploadDirItem).toAbsolutePath().normalize();
                 if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
 
                 String savedName = UUID.randomUUID() + "_" + itemImage.getOriginalFilename();

@@ -1,0 +1,10 @@
+// - 로컬 실행 검증과 기존 권한 테스트를 명시적으로 연결
+gradle.projectsEvaluated {
+    def serviceProject = gradle.rootProject
+    serviceProject.sourceSets.test.java.srcDir(
+        serviceProject.file('verification/phase-a/src/test/java')
+    )
+    serviceProject.sourceSets.test.java.srcDir(
+        serviceProject.file('verification/local-docker/src/test/java')
+    )
+}

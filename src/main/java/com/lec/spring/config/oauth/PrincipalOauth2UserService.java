@@ -17,13 +17,16 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
  * OAuth2UserService<OAuth2UserRequest, OAuth2User>(I)
  * └─ DefaultOAuth2UserService
  */
 
+// - 소셜 로그인 비활성화 시 공급자 키·대체 비밀번호 설정도 요구하지 않음
 @Service
+@ConditionalOnProperty(name = "app.oauth2.enabled", havingValue = "true", matchIfMissing = true)
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
     @Value("${spring.security.user.password}")
